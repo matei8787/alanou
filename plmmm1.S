@@ -851,6 +851,64 @@ am_pus_de:
 gata_mesajul:
     ret
 
+da_numar_decript: ;// poz
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %ecx
+    xor %eax, %eax
+    lea cmat, %edi
+    mov %ecx, %ebx
+    add $7, %ebx
+
+et_for_numar_decript:
+    cmp %ebx, %ecx
+    jg gata_numarul
+
+    pushl %ecx
+    pushl %ebx
+
+    mov (%edi, %ecx, 4), %ebx
+    xor %edx, %edx
+    mull doi
+    add %ebx, %eax
+
+    pop %ebx
+    pop %ecx
+    add $1, %ecx
+    jmp et_for_numar_decript
+
+
+gata_numarul:
+    pop %ebp
+    ret
+
+afis_decript:
+    xor %ecx, %ecx
+
+et_for_afis_decript:
+    cmp lfin, %ecx
+    jge gata_tot
+
+    pushl %ecx
+
+    pushl %ecx
+    call da_numar_decript
+    pop %ecx
+
+    pushl %eax
+    call putchar
+    pop %eax
+
+    pop %ecx
+    add $8, %ecx
+    jmp et_for_afis_decript
+
+gata_tot:
+    pushl $0
+    call fflush
+    pop %eax
+    ret    
 
 
 .global main
@@ -896,7 +954,7 @@ cripteaza:
     call xoreaza
 
     call afis_cript
-    jmp et_exit
+    jmp afisare
 
 decripteaza:
 
@@ -910,15 +968,17 @@ decripteaza:
     call pregateste_datele
     call xoreaza
 
-    pushl $cmat
-    pushl lfin
-    call afisare_vec
-    pop %eax
-    pop %eax
+    call afis_decript
 
 
 afisare:
+    pushl $endl
+    call printf
+    pop %eax
 
+    pushl $0
+    call fflush
+    pop %eax
 
 
 et_exit:
