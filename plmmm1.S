@@ -24,6 +24,7 @@ sCitireCelula: .asciz "%ld%ld"
 sCitireK: .asciz "%ld"
 sAfisElem: .asciz "%ld"
 sCitireSir: .asciz "%s"
+sHexa: .asciz "0x"
 endl: .asciz "\n"
 .text
 alocare_mat:
@@ -572,8 +573,201 @@ prelungeste: ;// v[], from, to
     push %ebp
     mov %esp, %ebp
 
-    
+    mov 8(%ebp), %edi
+    mov 12(%ebp), %eax
+    mov 16(%ebp), %ebx
+    xor %ecx, %ecx
 
+et_start_forp:
+    cmp %ebx, %eax
+    jge et_stop_prel
+
+    mov (%edi, %ecx, 4), %edx
+    mov %edx, (%edi, %eax, 4)
+
+    add $1, %eax
+    add $1, %ecx
+    jmp et_start_forp
+
+et_stop_prel:
+    pop %ebp
+    ret
+
+pregateste_datele:
+
+    mov nm, %eax
+    cmp %eax, lmesb
+    jl caz_cheie_mare
+
+caz_mesaj_mare:
+    pushl lmesb
+    pushl nm
+    pushl $mat
+    call prelungeste
+    pop %eax
+    pop %eax
+    pop %eax
+inainte_gasit:
+    mov lmesb, %eax
+    mov %eax, lfin
+    jmp gata_pregatite
+
+caz_cheie_mare:
+    pushl nm
+    pushl lmesb
+    pushl $mesb
+    call prelungeste
+    pop %eax
+    pop %eax
+    pop %eax
+    mov nm, %eax
+    mov %eax, lfin
+
+gata_pregatite:
+    ret
+
+xoreaza:
+
+    xor %eax, %eax
+
+et_start_for_xor:
+    cmp lfin, %eax
+    jge stop_xor
+    
+iau_cheie:
+    lea mat, %edi
+    mov (%edi, %eax, 4), %ebx
+iau_mesaj:
+    lea mesb, %edi
+    mov (%edi, %eax, 4), %ecx
+    xor %ebx, %ecx
+gata_xor:
+    lea cmat, %edi
+    mov %ecx, (%edi, %eax, 4)
+am_pus:
+
+    add $1, %eax
+    jmp et_start_for_xor
+
+stop_xor:
+    ret
+
+da_numar: ;//poz
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %ebx
+    add $3, %ebx
+
+    xor %eax, %eax
+    xor %edx, %edx
+    xor %ecx, %ecx
+    lea cmat, %edi
+
+    mov (%edi, %ebx, 4), %eax
+    sub $1, %ebx
+    add %eax, %ecx
+
+    mov (%edi, %ebx, 4), %eax
+    mull doi
+    sub $1, %ebx
+    add %eax, %ecx
+
+    mov (%edi, %ebx, 4), %eax
+    mull doi
+    mull doi
+    sub $1, %ebx
+    add %eax, %ecx
+
+    mov (%edi, %ebx, 4), %eax
+    mull doi
+    mull doi
+    mull doi
+    sub $1, %ebx
+    add %eax, %ecx
+
+    mov %ecx, %eax
+
+    pop %ebp
+    ret
+
+b10_16: ;//nr
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %eax
+
+    cmp $10, %eax
+    jge nu_cif
+
+    add $48, %eax
+    jmp gata_b16
+
+nu_cif:
+    sub $10, %eax
+    add $65, %eax
+
+gata_b16:
+    pop %ebp
+    ret
+
+afis_cript:
+
+    pushl $sHexa
+    call printf
+    pop %ecx
+
+    xor %ecx, %ecx
+
+
+et_for_afis_cript:
+    cmp lfin, %ecx
+    jge gata_cript
+
+    pushl %ecx
+
+start_for:
+
+    pushl %ecx
+    call da_numar
+    pop %ecx
+
+am_b10:
+
+    pushl %eax
+    call b10_16
+    pop %ecx
+
+am_car:
+
+    pushl %eax
+    call putchar
+    pop %eax
+
+
+gata_car:
+
+    pop %ecx
+
+restituit:
+    
+    add $4, %ecx
+    jmp et_for_afis_cript
+
+gata_cript:
+    pushl $0
+    call fflush
+    pop %eax
+    ret
+
+
+
+pune_nr: ;//poz, nr
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %eax
+    mov 12(%ebp), %ebx
 
 
 
@@ -609,16 +803,25 @@ citire:
 rez:
     
     call simuleaza
+    mov cerinta, %eax
+    cmp $1, %eax
+    je decripteaza
+
+cripteaza:
     call mesajbit
+    call pregateste_datele
+    call xoreaza
+
+    call afis_cript
+    jmp et_exit
+
+decripteaza:
+
+
 
 
 afisare:
 
-    pushl $mesb
-    pushl lmesb
-    call afisare_vec
-    pop %eax
-    pop %eax
 
 
 et_exit:
