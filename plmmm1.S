@@ -766,10 +766,90 @@ pune_nr: ;//poz, nr
     push %ebp
     mov %esp, %ebp
 
+    mov 8(%ebp), %ebx
+    mov 12(%ebp), %eax
+    mov %ebx, %ecx
+    add $3, %ebx
+    lea mesb, %edi
+
+et_for_punnr:
+    cmp %ecx, %ebx
+    jl gata_numar
+
+    xor %edx, %edx
+    divl doi
+    mov %edx, (%edi, %ebx, 4)
+
+    sub $1, %ebx
+    jmp et_for_punnr
+
+
+gata_numar:
+    pop %ebp
+    ret
+
+b16_10: ;// car
+
+    push %ebp
+    mov %esp, %ebp
+
     mov 8(%ebp), %eax
-    mov 12(%ebp), %ebx
+
+    sub $48, %eax
+
+    cmp $10, %eax
+    jge e_litera
+
+nu_litera:
+    jmp gata_b10
+
+e_litera:
+    add $48, %eax
+    sub $65, %eax
+    add $10, %eax
+
+gata_b10:
+    pop %ebp
+    ret
+
+mesajbit_decript:
+
+    mov $2, %eax
+    xor %ecx, %ecx
+
+et_mesajbit_for:
+    cmp lmesaj, %eax
+    jge gata_mesajul
+
+    pushl %eax
+    pushl %ecx
+
+    lea mesaj, %edi
+    xor %ebx, %ebx
+    movb (%edi, %eax, 1), %bl
+
+inainte_de_calcule:
+    pushl %ebx
+    call b16_10
+    pop %ebx
+
+am_b16:
+    pushl %eax
+    pushl %ecx
+    call pune_nr
+    pop %ebx
+    pop %ebx
+
+am_pus_de:
+    pop %ecx
+    pop %eax
+    add $1, %eax
+    add $4, %ecx
+    jmp et_mesajbit_for
 
 
+gata_mesajul:
+    ret
 
 
 
@@ -794,11 +874,6 @@ citire:
     mov %eax, lmesaj
 
 
-    mull doi
-    mull doi
-    mull doi
-    mov %eax, lmesb
-
 
 rez:
     
@@ -808,6 +883,14 @@ rez:
     je decripteaza
 
 cripteaza:
+
+    mov lmesaj, %eax
+    mull doi
+    mull doi
+    mull doi
+    mov %eax, lmesb
+
+
     call mesajbit
     call pregateste_datele
     call xoreaza
@@ -817,7 +900,21 @@ cripteaza:
 
 decripteaza:
 
+    mov lmesaj, %eax
+    sub $2, %eax
+    mull doi
+    mull doi
+    mov %eax, lmesb
 
+    call mesajbit_decript
+    call pregateste_datele
+    call xoreaza
+
+    pushl $cmat
+    pushl lfin
+    call afisare_vec
+    pop %eax
+    pop %eax
 
 
 afisare:
