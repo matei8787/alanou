@@ -2,11 +2,14 @@
 mat: .space 1605
 cmat: .space 1605
 mesaj: .space 1605
+mesb: .space 1605
+doi: .long 2
 n: .space 4
 m: .space 4
 nm: .space 4
 cerinta: .space 4
 lfin: .space 4
+lmesb: .space 4
 lmesaj: .space 4
 mp1: .space 4 ;// m plus 1
 mp2: .space 4 ;// m plus 2
@@ -19,7 +22,7 @@ dy: .long 0, 1, 1, 1, 0, -1, -1, -1
 sCitire: .asciz "%ld%ld%ld"
 sCitireCelula: .asciz "%ld%ld"
 sCitireK: .asciz "%ld"
-sAfisElem: .asciz "%ld "
+sAfisElem: .asciz "%ld"
 sCitireSir: .asciz "%s"
 endl: .asciz "\n"
 .text
@@ -451,6 +454,127 @@ et_final_loop:
 et_final_simulare:
     ret
     
+afisare_vec: ;// sz, v[sz]
+
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %eax
+    mov 12(%ebp), %edi
+
+    xor %ecx, %ecx
+
+et_start_for_afv:
+    cmp %eax, %ecx
+    jge et_ret_afv
+
+    push %eax
+    push %ecx
+
+    mov (%edi, %ecx, 4), %eax
+    pushl %eax
+    pushl $sAfisElem
+    call printf
+    pop %eax
+    pop %eax
+
+    pushl $0
+    call fflush
+    pop %eax
+
+    pop %ecx
+    pop %eax
+    add $1, %ecx
+    jmp et_start_for_afv
+
+
+et_ret_afv:
+    pop %ebp
+    ret
+
+punecar: ;//poz, car
+
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %eax
+    mov 12(%ebp), %ebx
+dupa_luat:
+    mov %eax, %ecx
+    add $7, %ecx
+    lea mesb, %edi
+
+et_start_for_puncar:
+    cmp %eax, %ecx
+    jl et_stop_puncar
+
+inainte_calcule_puncar:
+
+    push %eax
+
+    mov %ebx, %eax
+
+    xor %edx, %edx
+    divl doi
+    movl %edx, (%edi, %ecx, 4)
+    mov %eax, %ebx
+
+    pop %eax
+dupa_calcule_puncar:
+
+    sub $1, %ecx
+    jmp et_start_for_puncar
+
+
+et_stop_puncar:
+    pop %ebp
+    ret
+
+mesajbit:
+
+    xor %eax, %eax ;//poz mesaj
+    xor %ecx, %ecx ;//poz mesajbit
+
+et_for_mbit:
+    cmp lmesaj, %eax
+    jge et_ret_mesajbit
+
+    lea mesaj, %edi
+    pushl %eax
+    pushl %ecx
+
+et_inainte_car:
+
+    xor %ebx, %ebx
+    movb (%edi, %eax, 1), %bl
+
+et_dupa_car:
+    push %ebx
+    push %ecx
+    call punecar
+    pop %ecx
+    pop %ebx
+
+    pop %ecx
+    pop %eax
+
+    add $1, %eax
+    add $8, %ecx
+    jmp et_for_mbit
+
+
+et_ret_mesajbit:
+    ret
+
+
+prelungeste: ;// v[], from, to
+
+    push %ebp
+    mov %esp, %ebp
+
+    
+
+
 
 
 
@@ -463,14 +587,39 @@ citire:
     popl %eax
     call citiresys
 
-    
+    mov n, %eax
+    add $2, %eax
+    xor %edx, %edx
+    mull mp2
+    mov %eax, nm
+
+
+    pushl $mesaj
+    call strlen
+    pop %ecx
+    mov %eax, lmesaj
+
+
+    mull doi
+    mull doi
+    mull doi
+    mov %eax, lmesb
+
 
 rez:
     
     call simuleaza
+    call mesajbit
+
 
 afisare:
-    
+
+    pushl $mesb
+    pushl lmesb
+    call afisare_vec
+    pop %eax
+    pop %eax
+
 
 et_exit:
     mov $1, %eax
